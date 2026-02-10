@@ -1,0 +1,5 @@
+name: lunarclient-apollo-desync
+version: 1.0
+main: com.lunarclient.desync.DesyncPlugin
+author: Moonsworth
+depend: [packetevents]
