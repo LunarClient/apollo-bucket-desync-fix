@@ -148,7 +148,7 @@ The server trusts the client's ray trace result rather than performing its own, 
 ### Server Setup
 1. Install **Apollo**, **PacketEvents**, and this **DesyncPlugin** in your server's `plugins` folder.
 2. Configure Apollo:
-    - Ensure the **Packet Enrichment* module is enabled in Apollo's `config.yml`.
+    - Ensure the **Packet Enrichment** module is enabled in Apollo's `config.yml`.
 
 ```diff
 --- /plugins/Apollo-Bukkit/config.yml

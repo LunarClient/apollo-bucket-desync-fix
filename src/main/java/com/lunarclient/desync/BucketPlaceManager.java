@@ -44,6 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BucketPlaceManager extends PacketListenerAbstract implements Listener {
 
     private final Map<UUID, RayTraceResult> rayTraceCache = new ConcurrentHashMap<>();
+    private final Map<UUID, RayTraceResult> useItemCache = new ConcurrentHashMap<>();
+
     private final EnumSet<Material> buckets = EnumSet.of(Material.BUCKET, Material.WATER_BUCKET, Material.LAVA_BUCKET);
 
     public BucketPlaceManager() {
@@ -54,7 +56,10 @@ public class BucketPlaceManager extends PacketListenerAbstract implements Listen
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        this.rayTraceCache.remove(event.getPlayer().getUniqueId());
+        UUID playerUuid = event.getPlayer().getUniqueId();
+
+        this.rayTraceCache.remove(playerUuid);
+        this.useItemCache.remove(playerUuid);
     }
 
     @Override
@@ -119,6 +124,13 @@ public class BucketPlaceManager extends PacketListenerAbstract implements Listen
             return;
         }
 
+        RayTraceResult clientRayTrace = this.rayTraceCache.remove(player.getUniqueId());
+
+        // Check if we have client ray trace
+        if (clientRayTrace == null) {
+            return;
+        }
+
         WrapperPlayClientPlayerBlockPlacement blockPlacement = new WrapperPlayClientPlayerBlockPlacement(event);
         if (blockPlacement.getFaceId() != 255) {
             return;
@@ -129,22 +141,11 @@ public class BucketPlaceManager extends PacketListenerAbstract implements Listen
             return;
         }
 
-        // Check if we have client ray trace
-        RayTraceResult clientRayTrace = this.rayTraceCache.get(player.getUniqueId());
-
-        if (clientRayTrace == null) {
-            return;
-        }
-
         event.setCancelled(true);
 
         // Process on main thread
         Bukkit.getScheduler().runTask(DesyncPlugin.getInstance(), () -> {
-            try {
-                this.processBucketPlacement(player, clientRayTrace);
-            } finally {
-                this.rayTraceCache.remove(player.getUniqueId());
-            }
+            this.processBucketPlacement(player, clientRayTrace);
         });
     }
 
@@ -182,7 +183,9 @@ public class BucketPlaceManager extends PacketListenerAbstract implements Listen
         }
 
         if (!cancelled) {
+            this.useItemCache.put(player.getUniqueId(), rayTraceResult);
             nmsPlayer.playerInteractManager.useItem(nmsPlayer, nmsPlayer.world, itemStack);
+            this.useItemCache.remove(player.getUniqueId());
         }
     }
 
@@ -217,8 +220,8 @@ public class BucketPlaceManager extends PacketListenerAbstract implements Listen
         return new MovingObjectPosition(hitVec, direction, blockPos);
     }
 
-    public RayTraceResult getAndRemove(UUID playerUuid) {
-        return this.rayTraceCache.remove(playerUuid);
+    public RayTraceResult getUseItemCache(UUID playerUuid) {
+        return this.useItemCache.get(playerUuid);
     }
     
 }

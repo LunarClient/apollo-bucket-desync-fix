@@ -28,7 +28,7 @@ public class ApolloItemBucket extends ItemBucket {
         BucketPlaceManager bucketManager = DesyncPlugin.getInstance().getBucketPlaceManager();
         if (bucketManager != null && entity instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer) entity;
-            RayTraceResult clientRayTrace = bucketManager.getAndRemove(player.getUniqueID());
+            RayTraceResult clientRayTrace = bucketManager.getUseItemCache(player.getUniqueID());
 
             if (clientRayTrace instanceof BlockHitResult) {
                 BlockHitResult blockHit = (BlockHitResult) clientRayTrace;
